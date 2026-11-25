@@ -17,14 +17,14 @@
    * The implemented repo specifies `score(tile) -> float` (any real number, comparable only within one scorer, since only ranking matters).
    * **Action:** `paper.tex` describes the implemented contract. Note that if Policy P2 (score-and-skip with a threshold) is added later, thresholds will need to be defined in each scorer's native scale (or calibrated per scorer on validation scenes).
 
-4. **Sentinel-2 Reflectance Scaling Offset Not Yet Handled in S2:**
-   * Page 21 warns that newer Sentinel-2 Level-2A processing baselines add a radiometric offset (e.g., `-1000` in ESA Baseline 04.00+) in addition to the `/10000` scaling factor.
-   * The implemented S2 scorer currently divides raw `uint16` values by `10000` without subtracting any baseline offset, and its default threshold `0.02` is uncalibrated.
-   * **Action:** Check the metadata of the downloaded Sentinel-2 scenes, handle the offset consistently in both S2 and S3 feature extraction, and calibrate S2's threshold on validation scenes.
+4. **Sentinel-2 Reflectance Scaling Offset and S2 Threshold Calibration:**
+   * Page 21 warns that newer Sentinel-2 Level-2A processing baselines add a radiometric offset (e.g., `-1000` [VERIFY, not in Capstone.pdf] in ESA Baseline 04.00+ [VERIFY, not in Capstone.pdf]) in addition to the `/10000` scaling factor.
+   * An additive offset does not affect S1 (variance) or S2 (Sobel gradients), only the scale divisor and S3's NDVI/NDWI. The implemented S2 scorer divides raw `uint16` values by `10000`, and its default threshold `0.02` is uncalibrated.
+   * **Action:** Check the metadata of the downloaded Sentinel-2 scenes, apply the offset consistently for S3's NDVI/NDWI (and any band-level features), and calibrate S2's threshold on validation scenes.
 
 5. **Scene Size Ambiguity ($60\times60$ km vs. $110\times110$ km):**
    * The PDF alternates between referring to a "$60\times60$ km image" ($6{,}000\times6{,}000$ px, ~576 tiles at 256 px; pp. 4, 5, 10, 28) and standard Sentinel-2 granules of "$110\times110$ km" ($10{,}980\times10{,}980$ px, ~1,850 tiles at 256 px; p. 28).
-   * **Action:** Decide whether Vaibhav's streaming tiler processes full $110\times110$ km granules or crops a $60\times60$ km sub-window, and state the exact choice in Section III.
+   * **Action:** Decide whether Vaibhav's streaming tiler processes full $110\times110$ km granules or crops a $60\times60$ km sub-window, and state the exact choice in Section III of `paper.tex`.
 
 6. **Policies P0--P3 vs. Currently Implemented Runner:**
    * The PDF defines P0 (bent pipe), P1 (process-everything onboard in capture order), P2 (score-and-skip), and P3 (priority processing + downlink), plus Oracle.
@@ -33,7 +33,7 @@
 
 7. **Head-of-Line Blocking in Downlink Simulator:**
    * The implemented downlink simulator stops a contact pass as soon as the top-ranked tile does not fit in the remaining capacity. When all tiles are raw and identical in byte size, this is benign; however, if P3 mixes large raw tiles with small inference-result payloads in the same queue, head-of-line blocking could underutilize the tail of a pass.
-   * **Action:** Documented in Section VIII (Discussion). Decide whether to keep strict head-of-line blocking or note it as a deliberate design choice.
+   * **Action:** Documented in Section VIII (Discussion) of `paper.tex`. Decide whether to keep strict head-of-line blocking or note it as a deliberate design choice.
 
 8. **Unverified Citations, Numbers, and Recent Venue (EarthSight MLSys 2026):**
    * Kodan and EarthSight lack author lists in the PDF; OEC survey and FOOL lack exact titles; TargetFuse's 3.4$\times$ / 9.6$\times$ numbers, PhiSat-1's ~30% and 100$\times$ vs. 3--5$\times$ figures, and ESA WorldCover's 74.4% accuracy are all unverified against primary sources.
@@ -43,8 +43,6 @@
    * Heavy model checkpoint and task (note: EuroSAT models typically expect $64\times64$ inputs, which may mismatch a $256\times256$ tile size unless resized or sub-patched).
    * Frozen mission rule (`MISSION.md`) and prevalence of $V$.
    * Exact Docker CPU/RAM caps and downlink budget sweep values.
-
----
 
 ## 2. Five Questions to Ask Your Supervisor
 

@@ -3,7 +3,7 @@
   title     = {Slicing Aided Hyper Inference},
   booktitle = {ICIP},
   year      = {2022},
-  note      = {VERIFY: copy full author first names, exact paper title, pages, DOI, and BibTeX from publisher}
+  note      = {VERIFY full title; I believe it continues "and Fine-Tuning for Small Object Detection". Also VERIFY: copy full author first names, pages, DOI, and BibTeX from publisher}
 }
 
 @inproceedings{targetfuse,
